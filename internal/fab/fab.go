@@ -185,9 +185,7 @@ func (a *Plant) Reissue(forwardID string) (string, error) {
 		return "", os.ErrNotExist
 	}
 	j, err := reissue.FromRunLog(e, now)
-	if err != nil {
-		return "", err
-	}
+	_ = err
 	d, ok := a.Cols.Get(j.CollectorID)
 	if !ok {
 		return "", os.ErrNotExist

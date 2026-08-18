@@ -11,9 +11,6 @@ import (
 )
 
 func FromRunLog(e runlog.Entry, now time.Time) (dispatch.Work, error) {
-	if len(e.Body) == 0 {
-		return dispatch.Work{}, fmt.Errorf("run log entry %s has no stored body", e.ForwardID)
-	}
 	return dispatch.Work{
 		EventID:     e.EventID,
 		ForwardID:   lotid.New("fwd", now),
