@@ -48,7 +48,9 @@ func (p *Pipeline) Handle(h http.Header, body []byte) (Result, int, error) {
 		return Result{}, http.StatusBadRequest, err
 	}
 	secrets := p.Keys.Secrets(in.ToolKey)
-
+	if len(secrets) == 0 {
+		return Result{}, http.StatusUnauthorized, fmt.Errorf("unknown tool key %q", in.ToolKey)
+	}
 	if err := seal.Verify(p.Clk, p.Window, secrets, seal.Headers{
 		Timestamp: in.Timestamp,
 		Nonce:     in.Nonce,
