@@ -56,7 +56,7 @@ func (p *Pipeline) Handle(h http.Header, body []byte) (Result, int, error) {
 		Nonce:     in.Nonce,
 		Signature: in.Signature,
 	}, body); err != nil {
-		if errors.Is(err, seal.ErrSkew) {
+		if err == seal.ErrSkew {
 			return Result{}, http.StatusBadRequest, err
 		}
 		return Result{}, http.StatusUnauthorized, err
