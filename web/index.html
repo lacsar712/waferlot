@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WaferLot</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>WaferLot</h1>
+    <p class="sub">FAB lot-step relay · signed tool events · MES collector · retry / isolator / hold bin</p>
+    <div id="status" class="status">connecting…</div>
+  </header>
+  <main>
+    <section>
+      <h2>MES collectors</h2>
+      <form id="col-form">
+        <input name="name" placeholder="name" required />
+        <input name="url" placeholder="http://mes.fab/collector" required />
+        <input name="secret" placeholder="outbound secret" required minlength="8" />
+        <input name="kind_prefixes" placeholder="kind prefixes, e.g. lot." />
+        <button type="submit">Add</button>
+      </form>
+      <div id="collectors"></div>
+    </section>
+    <section>
+      <h2>Post lot event</h2>
+      <p class="hint">Uses tool secret <code>dev-tool-secret</code> and HMAC-SHA256 headers. Process programs are process programs, not cooking recipes.</p>
+      <form id="event-form">
+        <input name="type" value="lot.track_in" required />
+        <textarea name="payload" rows="8">{
+  "lot_id": "LOT-1001",
+  "tool_id": "LITHO-01",
+  "step_id": "litho.photo",
+  "process_program": "PP-LITHO-193NM-V3",
+  "wafer_count": 25,
+  "carrier_id": "FOUP-A12"
+}</textarea>
+        <button type="submit">Send</button>
+      </form>
+      <pre id="event-result"></pre>
+    </section>
+    <section>
+      <h2>Run log</h2>
+      <button type="button" id="refresh">Refresh</button>
+      <div id="runlog"></div>
+    </section>
+    <section>
+      <h2>Hold bin</h2>
+      <div id="holdbin"></div>
+    </section>
+    <section>
+      <h2>Echo collector received</h2>
+      <div id="echo"></div>
+    </section>
+    <section>
+      <h2>Tools / steps / process programs</h2>
+      <div id="catalog"></div>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
