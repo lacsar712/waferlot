@@ -96,6 +96,11 @@ func (b *Isolator) Allow() Decision {
 }
 
 func (b *Isolator) Success() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.failures = 0
+	b.state = Closed
+	b.probesLeft = 0
 }
 
 func (b *Isolator) Failure() {
