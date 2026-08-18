@@ -116,7 +116,6 @@ func (e *Engine) handle(ctx context.Context, j dispatch.Work) {
 
 	switch kind {
 	case outcome.Success:
-		br.Success()
 		return
 	case outcome.Retryable:
 		br.Failure()
