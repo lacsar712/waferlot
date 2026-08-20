@@ -2,6 +2,7 @@ package outcome
 
 import (
 	"errors"
+	"net"
 	"os"
 	"syscall"
 )
@@ -55,6 +56,13 @@ func NetError(err error) Kind {
 		errors.Is(err, syscall.ECONNRESET) ||
 		errors.Is(err, syscall.EPIPE) ||
 		errors.Is(err, os.ErrDeadlineExceeded) {
+		return Retryable
+	}
+	// A wrapped net.Error that reports a timeout (e.g. an http.Client.Timeout
+	// surfaced as *url.Error, or any caller error wrapping such a value) is
+	// transient: requeue and retry rather than routing to the terminal hold bin.
+	var netErr net.Error
+	if errors.As(err, &netErr) && netErr.Timeout() {
 		return Retryable
 	}
 	return Terminal

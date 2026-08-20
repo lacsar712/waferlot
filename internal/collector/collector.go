@@ -113,7 +113,10 @@ func (c *Client) Post(ctx context.Context, req Request) Result {
 
 	resp, err := c.http.Do(httpReq)
 	if err != nil {
-		return Result{Error: fmt.Errorf("outbound post: %v", err)}
+		// %w preserves the error chain so outcome.NetError can unwrap the cause
+		// (net.Error / context.DeadlineExceeded) and classify a collector timeout
+		// as retryable instead of routing it to the terminal hold bin.
+		return Result{Error: fmt.Errorf("outbound post: %w", err)}
 	}
 	defer resp.Body.Close()
 	limited := io.LimitReader(resp.Body, 2048)

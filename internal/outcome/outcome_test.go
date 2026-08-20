@@ -1,6 +1,7 @@
 package outcome_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -51,5 +52,16 @@ func TestNetErrorTimeoutUnwraps(t *testing.T) {
 	err := fmt.Errorf("outbound post: %w", timeoutErr{})
 	if got := outcome.NetError(err); got != outcome.Retryable {
 		t.Fatalf("wrapped timeout: got %s want retryable", got)
+	}
+}
+
+func TestNetErrorHTTPClientTimeoutChain(t *testing.T) {
+	// Reproduces what the collector surfaces on a collector timeout: the
+	// http.Client.Timeout deadline becomes context.DeadlineExceeded (which is
+	// os.ErrDeadlineExceeded), wrapped with %w so the chain stays intact. This
+	// must stay retryable and never reach the terminal hold bin.
+	err := fmt.Errorf("outbound post: %w", context.DeadlineExceeded)
+	if got := outcome.NetError(err); got != outcome.Retryable {
+		t.Fatalf("collector timeout: got %s want retryable", got)
 	}
 }
