@@ -96,6 +96,22 @@ func (b *Isolator) Allow() Decision {
 }
 
 func (b *Isolator) Success() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	switch b.state {
+	case HalfOpen:
+		// a probe succeeded: close the isolator and clear the backlog of failures
+		b.state = Closed
+		b.failures = 0
+		b.probesLeft = 0
+	case Closed:
+		// a healthy call resets the rolling failure count so an isolated
+		// failure cannot accumulate across interleaved successes to trip
+		b.failures = 0
+	case Open:
+		// stay open until the timer elapses; successes are not observed
+		// while open because Allow() rejects calls before they are made
+	}
 }
 
 func (b *Isolator) Failure() {
