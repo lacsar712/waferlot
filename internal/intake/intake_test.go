@@ -223,6 +223,22 @@ func TestPipelineInvalidJSONIsBadRequest(t *testing.T) {
 	}
 }
 
+// TestPipelineTruncatedJSONIsBadRequest covers a lot JSON that is cut off
+// mid-payload (only the first half arrived). It is a json.SyntaxError, so it
+// must map to 400 to match the MES alert dictionary, not 422.
+func TestPipelineTruncatedJSONIsBadRequest(t *testing.T) {
+	clk := wallclock.NewFrozen(time.Unix(1_700_000_000, 0))
+	p := newPipeline(t, clk)
+	body := []byte(`{"type":"lot.track_in","payload":{"lot_id":"LOT-1001","tool_id":"LITHO`)
+	_, code, err := p.Handle(signedHeaders(t, body, "truncnonce16chars", "idem-trunc-01", clk.Now().Unix()), body)
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	if code != http.StatusBadRequest {
+		t.Fatalf("truncated json want 400, got %d", code)
+	}
+}
+
 func TestPipelineMissingPayloadUnprocessable(t *testing.T) {
 	clk := wallclock.NewFrozen(time.Unix(1_700_000_000, 0))
 	p := newPipeline(t, clk)

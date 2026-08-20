@@ -24,7 +24,7 @@ func Parse(body []byte) (LotEvent, error) {
 	}
 	var env LotEvent
 	if err := json.Unmarshal(body, &env); err != nil {
-		return LotEvent{}, fmt.Errorf("json: %v", err)
+		return LotEvent{}, fmt.Errorf("json: %w", err)
 	}
 	if err := ValidateKind(env.Type); err != nil {
 		return LotEvent{}, err
