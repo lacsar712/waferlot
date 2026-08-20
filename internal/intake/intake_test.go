@@ -210,6 +210,28 @@ func TestPipelineUnknownSourceKeyUnauthorized(t *testing.T) {
 	}
 }
 
+// An empty key table (e.g. a snapshot restored with no tool keys) must reject
+// every ingest as unauthorized rather than panic and take down the relay.
+func TestPipelineEmptyKeyTableUnauthorized(t *testing.T) {
+	clk := wallclock.NewFrozen(time.Unix(1_700_000_000, 0))
+	p := newPipeline(t, clk)
+	p.Keys.Restore(nil) // wipe the seeded key: no tool can authorize
+	body := lotBody()
+	h := signedHeaders(t, body, "emptytable16char", "idem-empty-01", clk.Now().Unix())
+	defer func() {
+		if r := recover(); r != nil {
+			t.Fatalf("empty key table panicked: %v", r)
+		}
+	}()
+	_, code, err := p.Handle(h, body)
+	if err == nil {
+		t.Fatal("expected unauthorized")
+	}
+	if code != http.StatusUnauthorized {
+		t.Fatalf("code %d want 401", code)
+	}
+}
+
 func TestPipelineInvalidJSONIsBadRequest(t *testing.T) {
 	clk := wallclock.NewFrozen(time.Unix(1_700_000_000, 0))
 	p := newPipeline(t, clk)
